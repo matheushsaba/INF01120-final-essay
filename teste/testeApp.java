@@ -12,7 +12,7 @@ public class testeApp {
         player.play("C D");
 
         // Teste de criação de objeto da classe Note
-        TextToSoundConverter converter = new TextToSoundConverter();
+        TextToSoundParser converter = new TextToSoundParser();
         Note note = converter.convertTextToNote("C");
     }
 }
