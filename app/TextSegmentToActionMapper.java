@@ -1,147 +1,123 @@
 package app;
 
+import app.ChangePropertyAction.ActionOnProperty;
+
 public class TextSegmentToActionMapper {
     // Constants
-    private final int ASCII_CODE_A = 65;
-    private final int ASCII_CODE_B = 66;
-    private final int ASCII_CODE_G = 71;
-    private final int ASCII_CODE_I = 73;
-    private final int ASCII_CODE_O = 79;
-    private final int ASCII_CODE_U = 85;
-    private final int ASCII_CODE_R = 82;
-    private final int ASCII_CODE_Z = 90;
-    private final int ASCII_NEW_LINE = 10;
-    private final int ASCII_SPACE = 32;
-    private final int ASCII_PLUS = 43;
-    private final int ASCII_MINUS = 45;
-    private final int ASCII_SEMICOLON = 59;
-    private final int ASCII_QUESTION_MARK = 63;
+    // Uppercase notes
+    private static final int ASCII_CODE_A = 65;
+    private static final int ASCII_CODE_G = 71;
 
-    // Enumerations
-    public enum SegmentAction {
-        PLAY_NOTE, 
-        PAUSE, 
-        DOUBLE_VOLUME, 
-        DEFAULT_VOLUME, 
-        REPEAT_NOTE, 
-        RING_TELEPHONE, 
-        RAISE_OCTAVE, 
-        LOWER_OCTAVE,
-        PLAY_RANDOM_NOTE,
-        CHANGE_INSTRUMENT,
-        RAISE_BPM,
-        RANDOMIZE_BPM,
-        CONTINUE
-    }
+    // Non note vowels
+    private static final int ASCII_CODE_I = 73;
+    private static final int ASCII_CODE_O = 79;
+    private static final int ASCII_CODE_U = 85;
+    private static final int ASCII_CODE_i = 105;
+    private static final int ASCII_CODE_o = 111;
+    private static final int ASCII_CODE_u = 117;
+    
+    // First and last letter
+    private static final int ASCII_CODE_a = 97;
+    private static final int ASCII_CODE_Z = 90;
+    private static final int ASCII_CODE_z = 122;
+
+    // Numbers
+    private static final int ASCII_CODE_0 = 48;
+    private static final int ASCII_CODE_9 = 57;
+
+    // Symbols
+    private static final int ASCII_CODE_EXCLAMATION = 33;
+    private static final int ASCII_NEW_LINE = 10;
+    private static final int ASCII_SPACE = 32;
+    private static final int ASCII_SEMICOLON = 59;
+    private static final int ASCII_COMMA = 44;
+    private static final int ASCII_QUESTION_MARK = 63;
+    private static final int ASCII_DOT = 46;
+
 
     // Methods
-    private SegmentAction checkCharacterAction(String rawText, int characterIndex){
-        String characterText = getCharacterAtIndex(rawText, characterIndex);
-        int upperCaseCharacterAsciiCode = getCharacterUpperCaseAsciiCode(characterText);
+    public static SegmentAction checkSegmentAction(String rawText, int characterIndex){
+        String textSegment = getSegmentAtIndex(rawText, characterIndex);
+        int characterAsciiCode = getCharacterAsciiCode(textSegment);
 
-        if (isCharacterLetter(upperCaseCharacterAsciiCode)){
-            return getLetterAction(rawText, characterIndex);
+        if (isCharacterletter(characterAsciiCode)){
+            return getLetterAction(characterAsciiCode, rawText, characterIndex);
+        }
+        else if (isCharacterNumber(characterAsciiCode)){
+            return new ChangePropertyAction(ActionOnProperty.ADD_VALUE_TO_INSTRUMENT, Integer.parseInt(textSegment));
         }
 
-        return getSymbolAction(upperCaseCharacterAsciiCode);
+        return getSymbolAction(characterAsciiCode, rawText, characterIndex);
     }
-    private String getCharacterAtIndex(String rawText, int characterIndex){
+    private static String getSegmentAtIndex(String rawText, int characterIndex){
         return rawText.substring(characterIndex, characterIndex + 1);
     }	
-    private int getCharacterAsciiCode(String characterText){
+    private static int getCharacterAsciiCode(String characterText){
         Character character = characterText.charAt(0);
         int characterAsciiCode = (int)character;
 
         return characterAsciiCode;
     }
-    private int getCharacterUpperCaseAsciiCode(String characterText){
-        String upperCaseCharacterText = characterText.toUpperCase();
-        Character upperCaseCharacter = upperCaseCharacterText.charAt(0);
-        int upperCaseCharacterAsciiCode = (int)upperCaseCharacter;
-
-        return upperCaseCharacterAsciiCode;
-    }
     
-    private boolean isCharacterLetter(int upperCaseCharacterAsciiCode) {
-        boolean isCharacterAsciiValidLetter = upperCaseCharacterAsciiCode >= ASCII_CODE_A && upperCaseCharacterAsciiCode <= ASCII_CODE_Z;
-
-        return (isCharacterAsciiValidLetter) ? true : false;
+    private static boolean isCharacterletter(int characterAsciiCode) {
+        return (characterAsciiCode >= ASCII_CODE_A && characterAsciiCode <= ASCII_CODE_Z) || (characterAsciiCode >= ASCII_CODE_a && characterAsciiCode <= ASCII_CODE_z);
     }
-    private SegmentAction getLetterAction(String rawText, int characterIndex){
-        String characterText = getCharacterAtIndex(rawText, characterIndex);
-        int characterAsciiCode = getCharacterAsciiCode(characterText);
-        int upperCaseCharacterAsciiCode = getCharacterUpperCaseAsciiCode(characterText);
+    private static SegmentAction getLetterAction(int characterAsciiCode, String rawText, int characterIndex){
+        if (isCharacterUpperCaseNote(characterAsciiCode)){
+            return new PlayNoteAction(characterAsciiCode);
+        }
+        else if (isCharacterNonNoteVowel(characterAsciiCode)){
+            return new ChangePropertyAction(ActionOnProperty.SET_VALUE_TO_INSTRUMENT, 7); // 7 = Harpsicord
+        }
         
-        if (isCharacterNote(upperCaseCharacterAsciiCode)){
-            return isRaiseBPMTextSegment(upperCaseCharacterAsciiCode, rawText, characterIndex) ? SegmentAction.RAISE_BPM : SegmentAction.PLAY_NOTE;
-        }
-        else if (isCharacterNonNoteVowel(upperCaseCharacterAsciiCode)){
-            return isPreviousCharacterNote(rawText, characterIndex) ? SegmentAction.PLAY_NOTE : SegmentAction.RING_TELEPHONE;
-        }
-        else if (characterAsciiCode == ASCII_CODE_R){
-            return getOctaveModifierIfValid(rawText, characterIndex);
-        }
+        int previousCharacterAsciiCode = getPreviousCharacterAsciiCode(rawText, characterIndex);
 
-        return SegmentAction.CONTINUE;
-    }
-    private boolean isCharacterNote(int characterAsciiCode) {
-        boolean isCharacterAsciiValidNote = characterAsciiCode >= ASCII_CODE_A && characterAsciiCode <= ASCII_CODE_G;
-
-        return (isCharacterAsciiValidNote) ? true : false;
-    }
-    private boolean isRaiseBPMTextSegment(int characterAsciiCode, String rawText, int characterIndex){
-        if (characterAsciiCode == ASCII_CODE_B){
-            if (rawText.substring(characterIndex, characterIndex + 3) == "BPM+"){
-                return true;
-            }
+        if (isCharacterUpperCaseNote(previousCharacterAsciiCode)){
+            return new PlayNoteAction(previousCharacterAsciiCode); // Retorna a nota anterior
         }
+        return new PlayNoteAction(ASCII_SPACE); // Retorna silêncio
+    }
+    private static boolean isCharacterUpperCaseNote(int characterAsciiCode) {
+        return characterAsciiCode >= ASCII_CODE_A && characterAsciiCode <= ASCII_CODE_G;
+    }
+    private static boolean isCharacterNonNoteVowel(int characterAsciiCode) {
+        boolean isCharacterUpperCaseNonNoteVowel = characterAsciiCode == ASCII_CODE_I || characterAsciiCode == ASCII_CODE_O || characterAsciiCode == ASCII_CODE_U;
+        boolean isCharacterLowerCaseNonNoteVowel = characterAsciiCode == ASCII_CODE_i || characterAsciiCode == ASCII_CODE_o || characterAsciiCode == ASCII_CODE_u;
 
-        return false;
+        return isCharacterUpperCaseNonNoteVowel || isCharacterLowerCaseNonNoteVowel;
     }
-    private boolean isCharacterNonNoteVowel(int characterAsciiCode){
-        return (characterAsciiCode == ASCII_CODE_I || characterAsciiCode == ASCII_CODE_O || characterAsciiCode == ASCII_CODE_U) ? true : false;
-    }
-    private boolean isPreviousCharacterNote(String rawText, int characterIndex){
-        String previousCharacterText = getCharacterAtIndex(rawText, characterIndex - 1);
-        int previousCharacterUpperCaseAsciiCode = getCharacterUpperCaseAsciiCode(previousCharacterText);
+    private static int getPreviousCharacterAsciiCode(String rawText, int characterIndex){
+        String previousCharacterText = getSegmentAtIndex(rawText, characterIndex - 1);
+        int previousCharacterUpperCaseAsciiCode = getCharacterAsciiCode(previousCharacterText);
 
-        return isCharacterNote(previousCharacterUpperCaseAsciiCode) ? true : false;
+        return previousCharacterUpperCaseAsciiCode;
     }
-    private SegmentAction getOctaveModifierIfValid(String rawText, int firstCharacterIndex){
-        Character nextCharacter = rawText.charAt(firstCharacterIndex + 1);
-        int nextCharacterAsciiCode = (int)nextCharacter;
-        
-        switch (nextCharacterAsciiCode){
-            case ASCII_PLUS:
-                return SegmentAction.RAISE_OCTAVE;
-            case ASCII_MINUS:
-                return SegmentAction.LOWER_OCTAVE;
-            default:
-                return SegmentAction.CONTINUE;
-        }
+
+    private static boolean isCharacterNumber(int characterAsciiCode) {
+        return characterAsciiCode >= ASCII_CODE_0 && characterAsciiCode <= ASCII_CODE_9;
     }
-    
-    private SegmentAction getSymbolAction(int upperCaseCharacterAsciiCode){
-        switch (upperCaseCharacterAsciiCode){
-            case ASCII_SPACE:
-                return SegmentAction.PAUSE;
-            case ASCII_PLUS:
-                return SegmentAction.DOUBLE_VOLUME;
-            case ASCII_MINUS:
-                return SegmentAction.DEFAULT_VOLUME;
-            case ASCII_QUESTION_MARK:
-                return SegmentAction.PLAY_RANDOM_NOTE;
+
+    private static SegmentAction getSymbolAction(int characterAsciiCode, String rawText, int characterIndex){
+        switch (characterAsciiCode){
+            case ASCII_CODE_EXCLAMATION:
+                return new ChangePropertyAction(ActionOnProperty.SET_VALUE_TO_INSTRUMENT, 114); // 114 = Agogo
             case ASCII_NEW_LINE:
-                return SegmentAction.CHANGE_INSTRUMENT;
+                return new ChangePropertyAction(ActionOnProperty.SET_VALUE_TO_INSTRUMENT, 15); // 15 = Tubular Bells
             case ASCII_SEMICOLON:
-                return SegmentAction.RANDOMIZE_BPM;
+                return new ChangePropertyAction(ActionOnProperty.SET_VALUE_TO_INSTRUMENT, 76); // 76 = Pan Flute
+            case ASCII_COMMA:
+                return new ChangePropertyAction(ActionOnProperty.SET_VALUE_TO_INSTRUMENT, 20); // 20 = Church Organ
+            case ASCII_QUESTION_MARK:
+                return new ChangePropertyAction(ActionOnProperty.RAISE_OCTAVE, 1);
+            case ASCII_DOT:
+                return new ChangePropertyAction(ActionOnProperty.RAISE_OCTAVE, 1);
             default:
-                return SegmentAction.CONTINUE;
+                int previousCharacterAsciiCode = getPreviousCharacterAsciiCode(rawText, characterIndex);
+
+                if (isCharacterUpperCaseNote(previousCharacterAsciiCode)){
+                    return new PlayNoteAction(previousCharacterAsciiCode); // Retorna a nota anterior
+                }
+                return new PlayNoteAction(ASCII_SPACE); // Retorna silêncio
         }
     }
-
-    
-
-    
-
 }

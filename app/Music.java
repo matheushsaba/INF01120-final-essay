@@ -2,6 +2,7 @@ package app;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import org.jfugue.pattern.Pattern;
 
 public class Music {
     // Constants
@@ -15,75 +16,38 @@ public class Music {
     //final int DEFAULT_BPM = 120;
     //final int DEFAULT_OCTAVE = 4;
 
+    private final int maximumVolumeValue = 100;
+    private final int defaultVolumeValue = 50;
+    private final int minimumVolumeValue = 0;
+
+    private final int defaultBPMValue = 120;
+    private final int minimumBPMValue = 0;
+
+    private final int maximumOctaveValue = 10;
+    private final int defaultOctaveValue = 5;
+    private final int minimumOctaveValue = 1;
+
     // Properties
-    private HashSet<String> acceptedNotes;
-    private ArrayList<Sound> sequentialSounds;
+    private ArrayList<Pattern> sequentialPatterns;
+    private PatternBuilder actualPatternBuilder;
+
 
     // Constructor
+    public Music(){
+        this.sequentialPatterns = new ArrayList<Pattern>();
+        this.actualPatternBuilder = new PatternBuilder(defaultVolumeValue, defaultBPMValue, PatternBuilder.Instrument.GUITAR, defaultOctaveValue);
+    }
 
 
     // Methods
-    public void addSound(Sound sound) {
-        sequentialSounds.add(sound);
-    }
+    public void playText(String rawText){
 
-    public void removeSound(Sound sound) {
-        sequentialSounds.remove(sound);
-    }
-
-    public void play() {
-        for (Sound sound : sequentialSounds) {
-            sound.play();
+        for (int i = 0; i < rawText.length(); i++) {
+            SegmentAction segmentAction = TextSegmentToActionMapper.checkSegmentAction(rawText, i);
         }
     }
 
-    public void stop() {
-        for (Sound sound : sequentialSounds) {
-            sound.stop();
-        }
-    }
-
-    public void pause() {
-        for (Sound sound : sequentialSounds) {
-            sound.pause();
-        }
-    }
-
-    public void resume() {
-        for (Sound sound : sequentialSounds) {
-            sound.resume();
-        }
-    }
-    /* 
-    public void doubleVolume() {
-        for (Sound sound : sequentialSounds) {
-            sound.doubleVolume();
-        }
-    }
-
-    public void returnVolumeToDefault() {
-        for (Sound sound : sequentialSounds) {
-            sound.returnVolumeToDefault();
-        }
-    }
-
-    public void changeOctave(int octave) {
-        for (Sound sound : sequentialSounds) {
-            sound.changeOctave(octave);
-        }
-    }
-
-    public void changeInstrument(Instrument instrument) {
-        for (Sound sound : sequentialSounds) {
-            sound.changeInstrument(instrument);
-        }
-    }
-
-    public void changeBPM(int bpm) {
-        for (Sound sound : sequentialSounds) {
-            sound.changeBPM(bpm);
-        }
-    }*/
+   
     
     
 }
