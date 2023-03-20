@@ -2,14 +2,14 @@ package app;
 
 public class ChangePropertyAction extends SegmentAction {
     // Attributes
-    public ActionOnProperty propertyToChange;
-    public int propertyNewValue;
+    public ActionOnProperty ActionOnProperty;
+    public int PropertyNewValue;
 
     // Constructors
     public ChangePropertyAction(ActionOnProperty propertyToChange, int propertyNewValue) {
         super(ActionType.CHANGE_PROPERTY);
-        this.propertyToChange = propertyToChange;
-        this.propertyNewValue = propertyNewValue;
+        this.ActionOnProperty = propertyToChange;
+        this.PropertyNewValue = propertyNewValue;
     }
 
     // Enumerations
