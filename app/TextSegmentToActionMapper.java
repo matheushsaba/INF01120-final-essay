@@ -1,127 +1,105 @@
 package app;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import app.ChangePropertyAction.ActionOnProperty;
 
 public class TextSegmentToActionMapper {
-    // Constants
-    // Uppercase notes
-    private static final int ASCII_CODE_A = 65;
-    private static final int ASCII_CODE_G = 71;
-
-    // Non note vowels
-    private static final int ASCII_CODE_I = 73;
-    private static final int ASCII_CODE_O = 79;
-    private static final int ASCII_CODE_U = 85;
-    private static final int ASCII_CODE_i = 105;
-    private static final int ASCII_CODE_o = 111;
-    private static final int ASCII_CODE_u = 117;
-    
-    // First and last letter
-    private static final int ASCII_CODE_a = 97;
-    private static final int ASCII_CODE_Z = 90;
-    private static final int ASCII_CODE_z = 122;
-
-    // Numbers
-    private static final int ASCII_CODE_0 = 48;
-    private static final int ASCII_CODE_9 = 57;
-
-    // Symbols
-    private static final int ASCII_CODE_EXCLAMATION = 33;
-    private static final int ASCII_NEW_LINE = 10;
-    private static final int ASCII_SPACE = 32;
-    private static final int ASCII_SEMICOLON = 59;
-    private static final int ASCII_COMMA = 44;
-    private static final int ASCII_QUESTION_MARK = 63;
-    private static final int ASCII_DOT = 46;
-
+    // Mapping definitions
+    // Musical notes
+    private static final ArrayList<Character> NOTES_LIST = new ArrayList<>(Arrays.asList('A', 'B', 'C', 'D', 'E', 'F', 'G'));
+    private static final ArrayList<Character> NON_NOTE_VOWELS = new ArrayList<>(Arrays.asList('I', 'O', 'U', 'i', 'o', 'u'));
+    // Change instruments
+    private static final char COMMAND_AGOGO = '!';
+    private static final char COMMAND_TUBULAR_BELLS = '\n';
+    private static final char COMMAND_PAN_FLUTE = ';';
+    private static final char COMMAND_CHURCH_ORGAN = ',';
+    // Sound commands
+    private static final ArrayList<Character> COMMANDS_RAISE_OCTAVE = new ArrayList<>(Arrays.asList('?', '.'));
+    private static final char COMMAND_DOUBLE_VOLUME = ' ';
+    private static final char COMMAND_SILENCE = ' ';
+    private static final char JFUGUE_SILENCE = ' ';
+    // General instruments
+    private static final int JFUGUE_HARPSICHORD_VALUE = 7;
+    private static final int JFUGUE_AGOGO_VALUE = 114;
+    private static final int JFUGUE_TUBULAR_BELLS_VALUE = 15;
+    private static final int JFUGUE_PAN_FLUTE_VALUE = 76;
+    private static final int JFUGUE_CHURCH_ORGAN_VALUE = 20;
 
     // Methods
-    private int getAsciiValue(char character){
-        return (int) character;
-    }
-
-    public static SegmentAction checkSegmentAction(String rawText, int characterIndex){
-        String textSegment = getSegmentAtIndex(rawText, characterIndex);
-        int characterAsciiCode = getCharacterAsciiCode(textSegment);
-
-        if (isCharacterletter(characterAsciiCode)){
-            return getLetterAction(characterAsciiCode, rawText, characterIndex);
-        }
-        else if (isCharacterNumber(characterAsciiCode)){
-            return new ChangePropertyAction(ActionOnProperty.ADD_VALUE_TO_INSTRUMENT, Integer.parseInt(textSegment));
-        }
-
-        return getSymbolAction(characterAsciiCode, rawText, characterIndex);
-    }
-    private static String getSegmentAtIndex(String rawText, int characterIndex){
-        return rawText.substring(characterIndex, characterIndex + 1);
-    }	
-    private static int getCharacterAsciiCode(String characterText){
-        Character character = characterText.charAt(0);
+    private static int getCharacterAsciiCode(Character character){
         int characterAsciiCode = (int)character;
-
         return characterAsciiCode;
     }
-    
-    private static boolean isCharacterletter(int characterAsciiCode) {
-        return (characterAsciiCode >= ASCII_CODE_A && characterAsciiCode <= ASCII_CODE_Z) || (characterAsciiCode >= ASCII_CODE_a && characterAsciiCode <= ASCII_CODE_z);
+    private static boolean isCharacterletter(Character character) {
+        boolean isUpperCaseLetter = (getCharacterAsciiCode(character) >= getCharacterAsciiCode('A') && getCharacterAsciiCode(character) <= getCharacterAsciiCode('Z'));
+        boolean isLowerCaseLetter = (getCharacterAsciiCode(character) >= getCharacterAsciiCode('a') && getCharacterAsciiCode(character) <= getCharacterAsciiCode('z'));
+        return  (isUpperCaseLetter || isLowerCaseLetter);
     }
-    private static SegmentAction getLetterAction(int characterAsciiCode, String rawText, int characterIndex){
-        if (isCharacterUpperCaseNote(characterAsciiCode)){
-            return new PlayNoteAction(characterAsciiCode);
-        }
-        else if (isCharacterNonNoteVowel(characterAsciiCode)){
-            return new ChangePropertyAction(ActionOnProperty.SET_VALUE_TO_INSTRUMENT, 7); // 7 = Harpsicord
-        }
+    private static boolean isCharacterNumber(Character character) {
+        return getCharacterAsciiCode(character) >= getCharacterAsciiCode('0') && getCharacterAsciiCode(character) <= getCharacterAsciiCode('9');
+    }
+    private static boolean isCharacterUpperCaseNote(Character character) {
+        return NOTES_LIST.contains(character);
+    }
+    private static boolean isCharacterNonNoteVowel(Character character) {
+        return NON_NOTE_VOWELS.contains(character);
+    }
+    private static boolean isCharacterRaiseOctave(Character character) {
+        return COMMANDS_RAISE_OCTAVE.contains(character);
+    }
+    private static SegmentAction repeatNoteOrStaySilent(String rawText, int characterIndex){
+        Character previousCharacter = rawText.charAt(characterIndex -1);
+        if (isCharacterUpperCaseNote(previousCharacter))
+            return new PlayNoteAction(getCharacterAsciiCode(previousCharacter)); // Retorna a nota anterior
+        else
+            return new PlayNoteAction(JFUGUE_SILENCE); // Retorna silêncio
+    }
+    // Segment methods
+    public static SegmentAction checkSegmentAction(String rawText, int characterIndex){
+        Character character = rawText.charAt(characterIndex);
+        if (isCharacterletter(character))
+            return getLetterAction(character, rawText, characterIndex);
         
-        int previousCharacterAsciiCode = getPreviousCharacterAsciiCode(rawText, characterIndex);
-
-        if (isCharacterUpperCaseNote(previousCharacterAsciiCode)){
-            return new PlayNoteAction(previousCharacterAsciiCode); // Retorna a nota anterior
-        }
-        return new PlayNoteAction(ASCII_SPACE); // Retorna silêncio
-    }
-    private static boolean isCharacterUpperCaseNote(int characterAsciiCode) {
-        return characterAsciiCode >= ASCII_CODE_A && characterAsciiCode <= ASCII_CODE_G;
-    }
-    private static boolean isCharacterNonNoteVowel(int characterAsciiCode) {
-        boolean isCharacterUpperCaseNonNoteVowel = characterAsciiCode == ASCII_CODE_I || characterAsciiCode == ASCII_CODE_O || characterAsciiCode == ASCII_CODE_U;
-        boolean isCharacterLowerCaseNonNoteVowel = characterAsciiCode == ASCII_CODE_i || characterAsciiCode == ASCII_CODE_o || characterAsciiCode == ASCII_CODE_u;
-
-        return isCharacterUpperCaseNonNoteVowel || isCharacterLowerCaseNonNoteVowel;
-    }
-    private static int getPreviousCharacterAsciiCode(String rawText, int characterIndex){
-        String previousCharacterText = getSegmentAtIndex(rawText, characterIndex - 1);
-        int previousCharacterUpperCaseAsciiCode = getCharacterAsciiCode(previousCharacterText);
-
-        return previousCharacterUpperCaseAsciiCode;
+        else if (isCharacterNumber(character))
+            return new ChangePropertyAction(ActionOnProperty.ADD_VALUE_TO_INSTRUMENT, Character.getNumericValue(character));
+        else
+            return getSymbolAction(rawText, characterIndex);
     }
 
-    private static boolean isCharacterNumber(int characterAsciiCode) {
-        return characterAsciiCode >= ASCII_CODE_0 && characterAsciiCode <= ASCII_CODE_9;
+    private static SegmentAction getLetterAction(Character character, String rawText, int characterIndex){
+        if (isCharacterUpperCaseNote(character))
+            return new PlayNoteAction(getCharacterAsciiCode(character));
+
+        else if (isCharacterNonNoteVowel(character))
+            return new ChangePropertyAction(ActionOnProperty.SET_VALUE_TO_INSTRUMENT, JFUGUE_HARPSICHORD_VALUE);
+        
+        else
+            return repeatNoteOrStaySilent(rawText, characterIndex);
     }
 
-    private static SegmentAction getSymbolAction(int characterAsciiCode, String rawText, int characterIndex){
-        switch (characterAsciiCode){
-            case ASCII_CODE_EXCLAMATION:
-                return new ChangePropertyAction(ActionOnProperty.SET_VALUE_TO_INSTRUMENT, 114); // 114 = Agogo
-            case ASCII_NEW_LINE:
-                return new ChangePropertyAction(ActionOnProperty.SET_VALUE_TO_INSTRUMENT, 15); // 15 = Tubular Bells
-            case ASCII_SEMICOLON:
-                return new ChangePropertyAction(ActionOnProperty.SET_VALUE_TO_INSTRUMENT, 76); // 76 = Pan Flute
-            case ASCII_COMMA:
-                return new ChangePropertyAction(ActionOnProperty.SET_VALUE_TO_INSTRUMENT, 20); // 20 = Church Organ
-            case ASCII_QUESTION_MARK:
-                return new ChangePropertyAction(ActionOnProperty.RAISE_OCTAVE, 1);
-            case ASCII_DOT:
-                return new ChangePropertyAction(ActionOnProperty.RAISE_OCTAVE, 1);
+
+    private static SegmentAction getSymbolAction(String rawText, int characterIndex){
+        Character character = rawText.charAt(characterIndex);
+        if(character == COMMAND_SILENCE)
+            return new PlayNoteAction(COMMAND_SILENCE); // Retorna silêncio
+        switch (character){
+            case COMMAND_AGOGO:
+                return new ChangePropertyAction(ActionOnProperty.SET_VALUE_TO_INSTRUMENT, JFUGUE_AGOGO_VALUE);
+            case COMMAND_TUBULAR_BELLS:
+                return new ChangePropertyAction(ActionOnProperty.SET_VALUE_TO_INSTRUMENT, JFUGUE_TUBULAR_BELLS_VALUE);
+            case COMMAND_PAN_FLUTE:
+                return new ChangePropertyAction(ActionOnProperty.SET_VALUE_TO_INSTRUMENT, JFUGUE_PAN_FLUTE_VALUE);
+            case COMMAND_CHURCH_ORGAN:
+                return new ChangePropertyAction(ActionOnProperty.SET_VALUE_TO_INSTRUMENT, JFUGUE_CHURCH_ORGAN_VALUE);
+            case COMMAND_DOUBLE_VOLUME:
+                return new ChangePropertyAction(ActionOnProperty.DOUBLE_VOLUME, 1);
             default:
-                int previousCharacterAsciiCode = getPreviousCharacterAsciiCode(rawText, characterIndex);
-
-                if (isCharacterUpperCaseNote(previousCharacterAsciiCode)){
-                    return new PlayNoteAction(previousCharacterAsciiCode); // Retorna a nota anterior
-                }
-                return new PlayNoteAction(ASCII_SPACE); // Retorna silêncio
+                if(isCharacterRaiseOctave(character))
+                    return new ChangePropertyAction(ActionOnProperty.RAISE_OCTAVE, 1);
+                else
+                    return repeatNoteOrStaySilent(rawText, characterIndex);
         }
     }
 }

@@ -4,21 +4,34 @@ import app.PatternHandler.Instrument;
 
 import org.jfugue.player.Player;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import org.jfugue.pattern.Pattern;
+import app.TxtFileHandler;
 
 public class testeApp {
     public static void main (String[] args) {
+        TxtFileHandler fileHandler = new TxtFileHandler();
+        String fileContent = "";
+        try {
+            fileContent = fileHandler.getStringFromTxtFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         Player player = new Player();
         // Cria um array de patterns 
         Pattern p1 = new Pattern("I[ACOUSTIC_BASS] X[Volume]=2000 A A A A B C C").setTempo(150);
         Pattern p2 = new Pattern("I[TROMBONE] X[Volume]=20 C A").setTempo(60);
         Pattern p3 = new Pattern("I[PIANO] X[Volume]=12200 C D E F G A B").setTempo(80);
+        System.out.println(fileContent);
+        Pattern p4 = new Pattern(fileContent).setTempo(200);
         ArrayList<Pattern> patternsList = new ArrayList<Pattern>();
         patternsList.add(p1);
         patternsList.add(p2);
         patternsList.add(p3);
+        patternsList.add(p4);
         // Cria um PatternHandler
         PatternHandler fullSound = new PatternHandler(100, 80, Instrument.PIANO, 0);
         Pattern musica = new Pattern();
