@@ -36,6 +36,10 @@ public class TextSegmentToActionMapper {
 
 
     // Methods
+    private int getAsciiValue(char character){
+        return (int) character;
+    }
+
     public static SegmentAction checkSegmentAction(String rawText, int characterIndex){
         String textSegment = getSegmentAtIndex(rawText, characterIndex);
         int characterAsciiCode = getCharacterAsciiCode(textSegment);

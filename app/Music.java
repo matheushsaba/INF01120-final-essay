@@ -11,13 +11,13 @@ public class Music {
 
     // Properties
     private ArrayList<Pattern> sequentialPatterns;
-    private PatternBuilder actualPatternBuilder;
+    private PatternHandler actualPatternBuilder;
 
 
     // Constructor
     public Music(){
         this.sequentialPatterns = new ArrayList<Pattern>();
-        this.actualPatternBuilder = new PatternBuilder(defaultVolumeValue, defaultBPMValue, PatternBuilder.Instrument.GUITAR, defaultOctaveValue);
+        this.actualPatternBuilder = new PatternHandler(defaultVolumeValue, defaultBPMValue, PatternHandler.Instrument.GUITAR, defaultOctaveValue);
     }
 
 

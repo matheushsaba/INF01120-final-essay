@@ -1,11 +1,14 @@
 package app;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import org.jfugue.midi.MidiFileManager;
 import org.jfugue.pattern.Pattern;
 
-public class PatternBuilder {
+public class PatternHandler {
     // Attributes
     private static HashSet<String> acceptedNotes = new HashSet<String>(){
         {
@@ -67,7 +70,7 @@ public class PatternBuilder {
     }
 
     // Constructors
-    public PatternBuilder(int volumePercentage, int BPM, Instrument instrument, int octave) {
+    public PatternHandler(int volumePercentage, int BPM, Instrument instrument, int octave) {
         this.notes = new ArrayList<String>();
         this.volume = setVolume(volumePercentage);
         this.BPM = setBPM(BPM);
@@ -132,5 +135,21 @@ public class PatternBuilder {
         for (String note : this.notes) {
             note = note + this.octave;
         }
+    }
+
+    public Pattern convertArrayOfPatternsToPattern(ArrayList<Pattern> arrayOfPatterns){
+        Pattern fullSound = new Pattern();
+        for(int i=0; i<arrayOfPatterns.size(); i++)
+            fullSound.add(arrayOfPatterns.get(i), 1);
+        return fullSound;       
+    }
+
+    public void savePatternToMidiFile(Pattern fullSound){
+        final File arquivoMIDI = new File("convertedSound.MIDI");
+        try {
+            MidiFileManager.savePatternToMidi(fullSound, arquivoMIDI);
+        } catch (final IOException err) {
+            err.printStackTrace();
+        }        
     }
 }
