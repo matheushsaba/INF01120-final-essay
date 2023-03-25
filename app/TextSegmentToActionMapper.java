@@ -2,14 +2,15 @@ package app;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 
 import app.ChangePropertyAction.ActionOnProperty;
 
 public class TextSegmentToActionMapper {
     // Mapping definitions
     // Musical notes
-    private static final ArrayList<Character> NOTES_LIST = new ArrayList<>(Arrays.asList('A', 'B', 'C', 'D', 'E', 'F', 'G'));
-    private static final ArrayList<Character> NON_NOTE_VOWELS = new ArrayList<>(Arrays.asList('I', 'O', 'U', 'i', 'o', 'u'));
+    private static final HashSet<Character> NOTES_LIST = new HashSet<>(Arrays.asList('A', 'B', 'C', 'D', 'E', 'F', 'G'));
+    private static final HashSet<Character> NON_NOTE_VOWELS = new HashSet<>(Arrays.asList('I', 'O', 'U', 'i', 'o', 'u'));
     // Change instruments
     private static final char COMMAND_AGOGO = '!';
     private static final char COMMAND_TUBULAR_BELLS = '\n';
@@ -19,7 +20,7 @@ public class TextSegmentToActionMapper {
     private static final ArrayList<Character> COMMANDS_RAISE_OCTAVE = new ArrayList<>(Arrays.asList('?', '.'));
     private static final char COMMAND_DOUBLE_VOLUME = ' ';
     private static final char COMMAND_SILENCE = ' ';
-    private static final char JFUGUE_SILENCE = ' ';
+    private static final char JFUGUE_SILENCE = 'R';
     // General instruments
     private static final int JFUGUE_HARPSICHORD_VALUE = 7;
     private static final int JFUGUE_AGOGO_VALUE = 114;
